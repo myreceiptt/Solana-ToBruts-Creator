@@ -14,21 +14,21 @@ Kindly follow the following Instructions to run the project in your system and i
 
 #### Install V.S. Code Editor
 
-```https://code.visualstudio.com/download
-  GET: VsCode Editor
+```
+  GET: V.S. Code Editor - https://code.visualstudio.com/download
 ```
 
 #### NodeJs & NPM Version
 
-```https://nodejs.org/en/download
-  NodeJs: v18.12.1
+```
+  NodeJs: v18.12.1 - https://nodejs.org/en/download
   NPM: 8.19.2
 ```
 
 #### Clone The Repo
 
-```https://github.com/myreceiptt/Solana-ToBruts-Creator
-  GET: Project Source Code
+```
+  GET: Project Source Code - https://github.com/myreceiptt/Solana-ToBruts-Creator
 ```
 
 ##### Use one of these NPM Install...
@@ -38,5 +38,11 @@ Kindly follow the following Instructions to run the project in your system and i
   npm i --force
   npm install
   npm install --force
+```
+
+##### Use this NPM Run Dev...
+
+```
+  npm run dev
 ```
 
