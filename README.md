@@ -31,3 +31,12 @@ Kindly follow the following Instructions to run the project in your system and i
   GET: Project Source Code
 ```
 
+##### Use one of these NPM Install...
+
+```
+  npm i
+  npm i --force
+  npm install
+  npm install --force
+```
+
