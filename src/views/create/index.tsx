@@ -55,100 +55,103 @@ export const CreateView: FC = ({ setOpenCreateModal }) => {
   };
 
   // CREATE TOBRUTS FUNCTION
-  const createToken = useCallback(async (token) => {
-    const lamports = await getMinimumBalanceForRentExemptMint(connection);
-    const mintKeypair = Keypair.generate();
-    const tokenATA = await getAssociatedTokenAddress(
-      mintKeypair.publicKey,
-      publicKey
-    );
+  const createToken = useCallback(
+    async (token) => {
+      const lamports = await getMinimumBalanceForRentExemptMint(connection);
+      const mintKeypair = Keypair.generate();
+      const tokenATA = await getAssociatedTokenAddress(
+        mintKeypair.publicKey,
+        publicKey
+      );
 
-    try {
-      const metadataUrl = await uploadMetadata(token);
-      console.log(metadataUrl);
+      try {
+        const metadataUrl = await uploadMetadata(token);
+        console.log(metadataUrl);
 
-      const createMetadataInstruction =
-        createCreateMetadataAccountV3Instruction(
-          {
-            metadata: PublicKey.findProgramAddressSync(
-              [
-                Buffer.from("metadata"),
-                PROGRAM_ID.toBuffer(),
-                mintKeypair.publicKey.toBuffer(),
-              ],
-              PROGRAM_ID
-            )[0],
-            mint: mintKeypair.publicKey,
-            mintAuthority: publicKey,
-            payer: publicKey,
-            updateAuthority: publicKey,
-          },
-          {
-            createMetadataAccountArgsV3: {
-              data: {
-                name: token.name,
-                symbol: token.symbol,
-                uri: metadataUrl,
-                creators: null,
-                sellerFeeBasisPoints: 0,
-                uses: null,
-                collection: null,
-              },
-              isMutable: false,
-              collectionDetails: null,
+        const createMetadataInstruction =
+          createCreateMetadataAccountV3Instruction(
+            {
+              metadata: PublicKey.findProgramAddressSync(
+                [
+                  Buffer.from("metadata"),
+                  PROGRAM_ID.toBuffer(),
+                  mintKeypair.publicKey.toBuffer(),
+                ],
+                PROGRAM_ID
+              )[0],
+              mint: mintKeypair.publicKey,
+              mintAuthority: publicKey,
+              payer: publicKey,
+              updateAuthority: publicKey,
             },
+            {
+              createMetadataAccountArgsV3: {
+                data: {
+                  name: token.name,
+                  symbol: token.symbol,
+                  uri: metadataUrl,
+                  creators: null,
+                  sellerFeeBasisPoints: 0,
+                  uses: null,
+                  collection: null,
+                },
+                isMutable: false,
+                collectionDetails: null,
+              },
+            }
+          );
+
+        const createNewTokenTransaction = new Transaction().add(
+          SystemProgram.createAccount({
+            fromPubkey: publicKey,
+            newAccountPubkey: mintKeypair.publicKey,
+            space: MINT_SIZE,
+            lamports: lamports,
+            programId: TOKEN_PROGRAM_ID,
+          }),
+          createInitializeMintInstruction(
+            mintKeypair.publicKey,
+            Number(token.decimals),
+            publicKey,
+            publicKey,
+            TOKEN_PROGRAM_ID
+          ),
+          createAssociatedTokenAccountInstruction(
+            publicKey,
+            tokenATA,
+            publicKey,
+            mintKeypair.publicKey
+          ),
+          createMintToInstruction(
+            mintKeypair.publicKey,
+            tokenATA,
+            publicKey,
+            Number(token.amount) * Math.pow(10, Number(token.decimals))
+          ),
+          createMetadataInstruction
+        );
+
+        const signature = await sendTransaction(
+          createNewTokenTransaction,
+          connection,
+          {
+            signers: [mintKeypair],
           }
         );
 
-      const createNewTokenTransaction = new Transaction().add(
-        SystemProgram.createAccount({
-          fromPubkey: publicKey,
-          newAccountPubkey: mintKeypair.publicKey,
-          space: MINT_SIZE,
-          lamports: lamports,
-          programId: TOKEN_PROGRAM_ID,
-        }),
-        createInitializeMintInstruction(
-          mintKeypair.publicKey,
-          Number(token.decimals),
-          publicKey,
-          publicKey,
-          TOKEN_PROGRAM_ID
-        ),
-        createAssociatedTokenAccountInstruction(
-          publicKey,
-          tokenATA,
-          publicKey,
-          mintKeypair.publicKey
-        ),
-        createMintToInstruction(
-          mintKeypair.publicKey,
-          tokenATA,
-          publicKey,
-          Number(token.amount) * Math.pow(10, Number(token.decimals))
-        ),
-        createMetadataInstruction
-      );
-
-      const signature = await sendTransaction(
-        createNewTokenTransaction,
-        connection,
-        {
-          signers: [mintKeypair],
-        }
-      );
-
-      setTokenMintAddress(mintKeypair.publicKey.toString());
-      notify({
-        type: "success",
-        message: "ToBruts Successfully Created",
-        txid: signature,
-      });
-    } catch (error: any) {
-      notify({ type: "error", message: "ToBruts Creation Failed" });
-    }
-    setIsLoading(false);
-  }, [p]);
+        setTokenMintAddress(mintKeypair.publicKey.toString());
+        notify({
+          type: "success",
+          message: "ToBruts Successfully Created",
+          txid: signature,
+        });
+      } catch (error: any) {
+        notify({ type: "error", message: "ToBruts Creation Failed" });
+      }
+      setIsLoading(false);
+    },
+    [publicKey, connection, sendTransaction]
+  );
 
   // IPFS IMAGE UPLOAD
   const handleImageChange = async (event) => {
@@ -171,8 +174,9 @@ export const CreateView: FC = ({ setOpenCreateModal }) => {
           url: "https://api.pinata.cloud/pinning/pinFileToIPFS",
           data: formData,
           head: {
-            pinata_api_key: "",
-            pinata_secret_api_key: "",
+            pinata_api_key: "16b4c23561bf6e25ca15",
+            pinata_secret_api_key:
+              "767afa4d58aa1f955fd082ff7d0759f66095bcf12c812c909281b2bd122eb6e4",
             "Content-Type": "multipart/form-data",
           },
         });
@@ -207,8 +211,9 @@ export const CreateView: FC = ({ setOpenCreateModal }) => {
         url: "https://api.pinata.cloud/pinning/pinJSONToIPFS",
         data: data,
         head: {
-          pinata_api_key: "",
-          pinata_secret_api_key: "",
+          pinata_api_key: "ef886d516b4c23561bf6e25ca150",
+          pinata_secret_api_key:
+            "767afa4d58aa1f955fd082ff7d0759f66095bcf12c812c909281b2bd122eb6e4",
           "Content-Type": "application/json",
         },
       });
@@ -221,5 +226,5 @@ export const CreateView: FC = ({ setOpenCreateModal }) => {
     setIsLoading(false);
   };
 
-  return <div>index</div>;
+  return <>d{isLoading && <div className=""></div>}</>;
 };
